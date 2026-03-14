@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import type { Report } from '@/lib/types'
 
-export default function PdfDownload({ report }: { report: any }) {
+export default function PdfDownload({ report }: { report: Report }) {
   const [loading, setLoading] = useState(false)
 
   const handleDownload = async () => {

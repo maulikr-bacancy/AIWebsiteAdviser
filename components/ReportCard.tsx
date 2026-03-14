@@ -1,6 +1,7 @@
 import Link from 'next/link'
+import type { Report } from '@/lib/types'
 
-export default function ReportCard({ report }: { report: any }) {
+export default function ReportCard({ report }: { report: Report }) {
   const score = report.clarity_score ?? 0
   const isGood = score >= 70
   const isMid = score >= 40

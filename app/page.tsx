@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import ReportCard from '@/components/ReportCard'
+import type { Report } from '@/lib/types'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -190,7 +191,7 @@ export default async function HomePage() {
             <p className="text-slate-300 mt-3">Real AI-generated reports from real websites</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
-            {demoReports.map((report: any) => (
+            {demoReports.map((report: Report) => (
               <ReportCard key={report.id} report={report} />
             ))}
           </div>

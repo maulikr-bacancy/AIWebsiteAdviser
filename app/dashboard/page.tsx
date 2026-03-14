@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import ReportCard from '@/components/ReportCard'
+import type { Report } from '@/lib/types'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -85,7 +86,7 @@ export default async function DashboardPage() {
             <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">Avg. Score</p>
             <p className="text-3xl font-black gradient-text">
               {analyses && analyses.length > 0
-                ? Math.round(analyses.reduce((sum: number, a: any) => sum + (a.clarity_score ?? 0), 0) / analyses.length)
+                ? Math.round(analyses.reduce((sum: number, a: Report) => sum + (a.clarity_score ?? 0), 0) / analyses.length)
                 : '—'}
             </p>
           </div>
@@ -96,7 +97,7 @@ export default async function DashboardPage() {
           <>
             <h2 className="text-lg font-bold text-white mb-4">Your Reports</h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {analyses.map((report: any) => (
+              {analyses.map((report: Report) => (
                 <ReportCard key={report.id} report={report} />
               ))}
             </div>

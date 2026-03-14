@@ -2,28 +2,39 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { callAI } from '@/lib/ai'
 import * as cheerio from 'cheerio'
+import { z } from 'zod'
+
+const RequestSchema = z.object({
+  url: z
+    .string()
+    .min(1, 'URL is required.')
+    .url('Invalid URL format.')
+    .max(2048, 'URL is too long.')
+    .refine((u) => ['http:', 'https:'].includes(new URL(u).protocol), {
+      message: 'Only HTTP/HTTPS URLs are allowed.',
+    }),
+})
+
+const AIResponseSchema = z.object({
+  clarity_score: z.number().min(0).max(100),
+  ux_suggestions: z.array(z.string()).min(1).max(10),
+  cro_recommendations: z.array(z.string()).min(1).max(10),
+  homepage_rewrite: z.string().min(1),
+  roast: z.string().min(1),
+})
 
 export async function POST(req: NextRequest) {
   try {
-    const { url } = await req.json()
-
-    if (!url || typeof url !== 'string') {
-      return NextResponse.json({ error: 'Invalid URL provided.' }, { status: 400 })
+    const body = await req.json()
+    const parsed = RequestSchema.safeParse(body)
+    if (!parsed.success) {
+      const message = parsed.error.issues[0]?.message ?? 'Invalid request.'
+      return NextResponse.json({ error: message }, { status: 400 })
     }
-
-    // Validate URL format
-    let parsedUrl: URL
-    try {
-      parsedUrl = new URL(url)
-    } catch {
-      return NextResponse.json({ error: 'Invalid URL format.' }, { status: 400 })
-    }
-
-    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
-      return NextResponse.json({ error: 'Only HTTP/HTTPS URLs are allowed.' }, { status: 400 })
-    }
+    const { url } = parsed.data
 
     // Block SSRF: reject private/internal hostnames
+    const parsedUrl = new URL(url)
     const hostname = parsedUrl.hostname.toLowerCase()
     const isPrivate =
       hostname === 'localhost' ||
@@ -77,8 +88,8 @@ export async function POST(req: NextRequest) {
       pageTitle = $('title').text().trim()
       metaDescription = $('meta[name="description"]').attr('content') || ''
 
-      const h1 = $('h1').map((_: any, el: any) => $(el).text().trim()).get().join(' | ')
-      const h2 = $('h2').map((_: any, el: any) => $(el).text().trim()).get().slice(0, 5).join(' | ')
+      const h1 = $('h1').map((_, el) => $(el).text().trim()).get().join(' | ')
+      const h2 = $('h2').map((_, el) => $(el).text().trim()).get().slice(0, 5).join(' | ')
       headings = [h1, h2].filter(Boolean).join('\n')
 
       $('script, style, nav, footer, head').remove()
@@ -116,15 +127,22 @@ Rules:
     let rawText: string
     try {
       rawText = await callAI(prompt)
-    } catch (aiErr: any) {
-      console.error('[analyze] AI call failed:', aiErr?.message ?? aiErr)
-      return NextResponse.json({ error: `AI error: ${aiErr?.message ?? 'Unknown AI error'}` }, { status: 500 })
+    } catch (aiErr: unknown) {
+      const msg = aiErr instanceof Error ? aiErr.message : String(aiErr)
+      console.error('[analyze] AI call failed:', msg)
+      return NextResponse.json({ error: `AI error: ${msg}` }, { status: 500 })
     }
 
-    let reportData: any
+    let reportData: z.infer<typeof AIResponseSchema>
     try {
       const jsonMatch = rawText.match(/\{[\s\S]*\}/)
-      reportData = JSON.parse(jsonMatch ? jsonMatch[0] : rawText)
+      const raw = JSON.parse(jsonMatch ? jsonMatch[0] : rawText)
+      const validated = AIResponseSchema.safeParse(raw)
+      if (!validated.success) {
+        console.error('[analyze] AI response failed schema validation:', validated.error.issues)
+        return NextResponse.json({ error: 'AI returned an unexpected response format. Please try again.' }, { status: 500 })
+      }
+      reportData = validated.data
     } catch {
       console.error('[analyze] JSON parse failed. Raw AI response:', rawText)
       return NextResponse.json({ error: 'Failed to parse AI response. Please try again.' }, { status: 500 })
@@ -158,8 +176,9 @@ Rules:
     )
 
     return NextResponse.json({ id: analysis.id })
-  } catch (err: any) {
-    console.error('[analyze] Unexpected error:', err?.message ?? err)
-    return NextResponse.json({ error: err?.message ?? 'An unexpected error occurred.' }, { status: 500 })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'An unexpected error occurred.'
+    console.error('[analyze] Unexpected error:', msg)
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }

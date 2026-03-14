@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Website Advisor
 
-## Getting Started
+Paste any public URL and get an instant AI audit — clarity score, UX issues, conversion tips, a homepage rewrite, and a brutally honest roast. Built for the AI Mahakurukshetra hackathon.
 
-First, run the development server:
+**Live demo:** https://ai-website-adviser.vercel.app/
+
+## Tech Stack
+
+- **Next.js 16** (App Router) — framework
+- **Supabase** — database + authentication
+- **Anthropic Claude** — AI analysis engine (OpenAI fallback supported)
+- **Tailwind CSS v4** — styling
+- **jsPDF** — PDF report generation
+- **Vercel** — deployment
+
+## Features
+
+- Website URL analysis via AI (Claude / OpenAI)
+- 5-section report: Clarity Score, Roast, UX Issues, CRO Tips, Homepage Rewrite
+- PDF download
+- User authentication (sign up / log in)
+- Monthly usage quota (3 free analyses per user)
+- Dashboard with analysis history
+- Demo reports on the landing page
+
+## Local Setup
 
 ```bash
+npm install
+cp .env.example .env.local
+# Fill in your keys in .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Description |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/public key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server-only) |
+| `ANTHROPIC_API_KEY` | Claude API key (primary AI provider) |
+| `OPENAI_API_KEY` | OpenAI key (optional fallback) |
+| `AI_PROVIDER` | `anthropic` or `openai` (default: `anthropic`) |
+| `AI_MODEL` | Model override (optional) |
 
-## Learn More
+## Database Setup
 
-To learn more about Next.js, take a look at the following resources:
+Run `schema.sql` and then `seed.sql` in your Supabase SQL editor:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Supabase Dashboard → SQL Editor → paste `lib/supabase/schema.sql` → Run
+2. Supabase Dashboard → SQL Editor → paste `seed.sql` → Run
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The seed script inserts 3 demo reports (with `user_id = NULL`) that appear on the homepage.
