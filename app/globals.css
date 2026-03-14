@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: #02020a;
+  color: #f1f5f9;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #02020a; }
+::-webkit-scrollbar-thumb { background: #2d2d45; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #ec4899; }
+
+/* Gradient text utility */
+.gradient-text {
+  background: linear-gradient(135deg, #ec4899, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glow effects */
+.glow-pink {
+  box-shadow: 0 0 40px rgba(236, 72, 153, 0.15);
+}
+.glow-pink-sm {
+  box-shadow: 0 0 20px rgba(236, 72, 153, 0.1);
+}
+
+/* Glass card */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Animated gradient background orb */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-20px) scale(1.05); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-float-slow { animation: float 9s ease-in-out infinite; }
+.animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+.animate-spin-slow { animation: spin-slow 20s linear infinite; }
+
+/* Step connector line */
+.step-line::after {
+  content: '';
+  position: absolute;
+  top: 24px;
+  left: calc(50% + 32px);
+  width: calc(100% - 64px);
+  height: 1px;
+  background: linear-gradient(90deg, rgba(236,72,153,0.4), rgba(168,85,247,0.4));
+}
+
+/* Input focus ring */
+input:focus, textarea:focus {
+  outline: none;
+  border-color: rgba(236, 72, 153, 0.6);
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+}
